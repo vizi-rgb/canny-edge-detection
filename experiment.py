@@ -1,9 +1,22 @@
 import cv2 as cv
-from cv2.typing import MatLike as Edge
+from cv2.typing import MatLike as Image
 import matplotlib.pyplot as plt
+from typing import Callable
+
+
+def _default_preprocessing(image: Image) -> Image:
+    return image
 
 class Experiment:
-    def __init__(self, image_path: str, threshold1: float, threshold2: float, use_accurate_gradient: bool = False, aperture_size: int=3):
+    def __init__(
+            self,
+            image_path: str,
+            threshold1: float,
+            threshold2: float,
+            use_accurate_gradient: bool = False,
+            aperture_size: int=3,
+            preprocessing_function: Callable[[Image], Image] = _default_preprocessing,
+    ):
         if image_path is None:
             raise ValueError("Image path cannot be None")
 
@@ -16,15 +29,17 @@ class Experiment:
         self.threshold2 = threshold2
         self.use_accurate_gradient = use_accurate_gradient
         self.aperture_size = aperture_size
+        self.preprocessing_function = preprocessing_function
         self.edges = None
 
 
-    def run(self) -> Edge:
+    def run(self) -> Image:
         if self.edges is not None:
             return self.edges
 
+        preprocessed = self.preprocessing_function(self.image)
         edges = cv.Canny(
-            self.image,
+            preprocessed,
             self.threshold1,
             self.threshold2,
             apertureSize=self.aperture_size,
