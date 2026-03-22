@@ -40,6 +40,21 @@ class CannyDemoApp:
         self.threshold2.set(200)
         self.threshold2.pack(side=tk.LEFT)
 
+        self.use_accurate_gradient = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            controls,
+            text="Użyj dokładnego gradientu (L2)",
+            variable=self.use_accurate_gradient,
+            command=self.update_edges,
+        ).pack(side=tk.LEFT, padx=(20, 5))
+
+        tk.Label(controls, text="Sigma").pack(side=tk.LEFT, padx=(20, 5))
+        self.sigma_var = tk.StringVar(value="0")
+        self.sigma_entry = tk.Entry(controls, width=8, textvariable=self.sigma_var)
+        self.sigma_entry.pack(side=tk.LEFT)
+        self.sigma_entry.bind("<Return>", self._on_sigma_commit)
+        self.sigma_entry.bind("<FocusOut>", self._on_sigma_commit)
+
         images = tk.Frame(self.root, padx=10, pady=10)
         images.pack(fill=tk.BOTH, expand=True)
 
@@ -82,6 +97,32 @@ class CannyDemoApp:
         self._show_original()
         self.update_edges()
 
+    def _on_sigma_commit(self, _event) -> None:
+        sigma = self._get_sigma(show_error=True)
+        if sigma is None:
+            return
+        self.update_edges()
+
+    def _get_sigma(self, show_error: bool) -> float | None:
+        raw_sigma = self.sigma_var.get().strip()
+        if raw_sigma == "":
+            if show_error:
+                messagebox.showerror("Błąd", "Sigma nie może być pusta.")
+            return None
+
+        try:
+            sigma = float(raw_sigma)
+        except ValueError:
+            if show_error:
+                messagebox.showerror("Błąd", "Sigma musi być liczbą (np. 0 lub 1.2).")
+            return None
+
+        if sigma < 0:
+            if show_error:
+                messagebox.showerror("Błąd", "Sigma musi być >= 0.")
+            return None
+        return sigma
+
     def _to_photo(self, image_rgb) -> tk.PhotoImage:
         resized = cv.resize(image_rgb, self.preview_size, interpolation=cv.INTER_AREA)
         ok, png_buffer = cv.imencode(".png", cv.cvtColor(resized, cv.COLOR_RGB2BGR))
@@ -100,8 +141,20 @@ class CannyDemoApp:
     def update_edges(self) -> None:
         if self.original_bgr is None:
             return
+        sigma = self._get_sigma(show_error=False)
+        if sigma is None:
+            return
+
         gray = cv.cvtColor(self.original_bgr, cv.COLOR_BGR2GRAY)
-        edges = cv.Canny(gray, self.threshold1.get(), self.threshold2.get())
+        if sigma > 0:
+            gray = cv.GaussianBlur(gray, (0, 0), sigma)
+
+        edges = cv.Canny(
+            gray,
+            self.threshold1.get(),
+            self.threshold2.get(),
+            L2gradient=self.use_accurate_gradient.get(),
+        )
         edges_rgb = cv.cvtColor(edges, cv.COLOR_GRAY2RGB)
         self.edges_photo = self._to_photo(edges_rgb)
         self.edges_label.config(image=self.edges_photo)
@@ -110,7 +163,7 @@ class CannyDemoApp:
         self.root.mainloop()
 
 
-def main() -> None:
+def main():
     root = tk.Tk()
     app = CannyDemoApp(root)
     app.run()
