@@ -28,14 +28,14 @@ class CannyDemoApp:
 
         tk.Label(controls, text="Próg 1").pack(side=tk.LEFT, padx=(20, 5))
         self.threshold1 = tk.Scale(
-            controls, from_=0, to=255, orient=tk.HORIZONTAL, command=lambda _v: self.update_edges()
+            controls, from_=0, to=1000, orient=tk.HORIZONTAL, command=lambda _v: self.update_edges()
         )
         self.threshold1.set(100)
         self.threshold1.pack(side=tk.LEFT)
 
         tk.Label(controls, text="Próg 2").pack(side=tk.LEFT, padx=(20, 5))
         self.threshold2 = tk.Scale(
-            controls, from_=0, to=255, orient=tk.HORIZONTAL, command=lambda _v: self.update_edges()
+            controls, from_=0, to=1000, orient=tk.HORIZONTAL, command=lambda _v: self.update_edges()
         )
         self.threshold2.set(200)
         self.threshold2.pack(side=tk.LEFT)
