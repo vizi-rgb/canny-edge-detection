@@ -3,7 +3,7 @@ import tkinter as tk
 import base64
 from tkinter import filedialog, messagebox
 
-import cv2 as cv
+import cv2 as cv  # pyright: ignore[reportMissingImports]
 
 
 class CannyDemoApp:
@@ -72,7 +72,7 @@ class CannyDemoApp:
         self.edges_label.pack(fill=tk.BOTH, expand=True)
 
     def _load_default_image(self) -> None:
-        default_path = "./gui/ronaldo.jpg"
+        default_path = "./data/ronaldo.jpg"
         if os.path.exists(default_path):
             self._set_image(default_path)
 

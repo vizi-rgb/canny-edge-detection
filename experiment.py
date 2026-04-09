@@ -1,5 +1,5 @@
-import cv2 as cv
-from cv2.typing import MatLike as Image
+import cv2 as cv  # pyright: ignore[reportMissingImports]
+from cv2.typing import MatLike as Image  # pyright: ignore[reportMissingImports]
 import matplotlib.pyplot as plt
 from typing import Callable
 
